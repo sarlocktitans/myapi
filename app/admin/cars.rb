@@ -13,7 +13,7 @@ ActiveAdmin.register Car do
 # end
    permit_params :name, :price, :location, :is_featured, 
     							  :image, :model, :registration_date,
-							       :description, :manufacturer
+							       :description, :manufacturer, :car_type, :min, :max
   index do
     selectable_column
     id_column

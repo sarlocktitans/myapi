@@ -2,12 +2,34 @@ module Api
   module V1
 
     class CarsController < ApiController
+      before_action :authenticate
+
+      def search
+        search_cars = ""
+        if(params[:car_type] == "new car")
+          search_cars = Car.where("name like?", "%#{params[:name]}%")
+        elsif(params[:car_type] == "old car")
+          search_cars = Car.where("price between #{params[:min]} and #{params[:max]}")
+          search_cars = search_cars.where("location like?", "%Delhi%")
+        end
+
+        if search_cars
+          cars_page = paging(search_cars)
+          render json: {status: 'SUCCESS', message: 'searching cars', data:cars_page},status: :ok
+        else
+          render json: {status: 'SUCCESS', message: 'Not Found'},status: :ok
+        end
+
+      end
 
       def index
-    	cars = Car.all
-      cars_pages = cars.each_slice(10).to_a 
-      cars_pages = cars_pages[0]
-      render json: {status: 'SUCCESS', message:'loading list', data:cars_pages},status: :ok
+      	cars = Car.all
+        if cars
+          cars_page = paging(cars)
+          render json: {status: 'SUCCESS', message: 'searching cars', data:cars_page},status: :ok
+        else
+          render json: {status: 'SUCCESS', message: 'Not Found'},status: :ok
+        end
       end
 
       def create
@@ -35,6 +57,10 @@ module Api
                                                           status: :unprocessable_entity
         end
       end
+
+      def update
+        car = Car.find(params[:id])
+      end
       private
 
       def user_params
@@ -43,14 +69,13 @@ module Api
     							       :description, :manufacturer)
       end
 
-      def search
-        if(params[:type] == "new car")
-          car = Car.where("name like?", "%#{params[:name]}%")
-        else
-          car = Car.where("#{params[:min]} AND #{params[:max]}")
-        end
-        render json: {status: 'SUCESS', message: 'searching cars', data:car},status: :ok
+      def paging(cars)
+        
+          cars_pages = cars.each_slice(10).to_a 
+          cars_page = cars_pages[0]
+        
       end
+
     end
   end
 end
